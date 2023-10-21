@@ -1,0 +1,47 @@
+<?php
+session_start();
+if($_SESSION["logged_in"] != 1){
+        header("Location: loginForm.php");
+}
+
+?>
+<form method='post'>
+        Username:
+        <input minlength="3" type="text" name="newUsername" />
+        <br>
+        Password:
+        <input minlength="3" type="password" name="newPassword" />
+        <br>
+        <button type="submit" name="submitButton">Create</button>
+</form>
+
+<?php
+@$username = $_POST['newUsername'];
+@$password = hash('sha256',$_POST['newPassword']);
+
+if(isset($_POST['submitButton'])){
+try {
+        $conn = new mysqli('localhost', 'nations', 'nations!', 'nations');
+        if($conn->connect_error){
+                die("Connection failed");
+        }
+        $stmt = $conn->prepare("Select * from brenanUsers where username=?;");
+        $stmt->bind_param("s", $username);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        @$user = $result->fetch_assoc();
+        if($user['username'] == null){
+                $stmt = $conn->prepare("INSERT INTO brenanUsers (username, password) values (?,?);");
+                $stmt->bind_param("ss", $username, $password);
+                $stmt->execute();
+                header("Location: userList.php");
+        } else {
+                echo "Username is already taken.";
+        }
+        $stmt->close();
+        $conn->close();
+} catch (PDOException $e) {
+        echo "Could not create user: " . $e;
+}
+}
+?>

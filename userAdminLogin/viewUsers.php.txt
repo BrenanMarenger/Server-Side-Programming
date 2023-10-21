@@ -1,0 +1,45 @@
+<?php
+session_start();
+if($_SESSION["logged_in"] === 1){
+
+        echo "<form method='POST'>";
+        echo    "<button type='submit' name='signoutButton'>Sign Out</button>";
+        echo    "<a href='createAccount.php'>Create a New User</a>";
+        if(isset($_POST['signoutButton'])){
+                unset($_SESSION["logged_in"]);
+                header("Location:  loginForm.php");
+        }
+        $conn = new mysqli('localhost', 'nations', 'nations!', 'nations');
+        if($conn->connect_error){
+                die("Connection failed");
+        }
+        $stmt = $conn->prepare("SELECT username from brenanUsers;");
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $userList = $result->fetch_assoc();
+
+        echo "<br>";
+        echo "<table>";
+        echo "<tr><td>Users(Click to delete)</td></tr>";
+        $i = 1;
+        while($row = $result->fetch_assoc()){
+                echo "<tr>";
+                        echo "<td>" . $i . ". " . '<input type="submit" id="deleteButton" name="deleteButton" value="'.>
+                echo "</tr>";
+                $i++;
+        }
+        echo "</table>";
+
+        if(isset($_POST['deleteButton'])){
+                $userToDelete = $_POST['deleteButton'];
+                $stmt = $conn->prepare("delete from brenanUsers where username=?;");
+                $stmt->bind_param("s", $userToDelete);
+                $stmt->execute();
+                header("Refresh:0");
+        }
+        echo "</form>";
+} else {
+
+        header("Location: loginForm.php");
+}
+?>
