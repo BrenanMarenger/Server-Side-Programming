@@ -1,0 +1,65 @@
+import mysql.connector
+import imghdr
+from flask import *
+from pprint import pprint
+app = Flask(__name__)
+
+form = """
+<!DOCTYPE html>
+<html>
+<body>
+
+<form action="/upload" method="post" enctype="multipart/form-data">
+  Select image to upload:
+  <input type="file" name="pic">
+  <input type="submit" value="Upload Image" name="submit">
+</form>
+
+</body>
+</html>
+"""
+
+app.secret_key = b'_5#y2L"F4Q8z\n\xec]/'
+data = []
+
+mydb = mysql.connector.connect(host="localhost", user="nations",password="nations!", database="nations")
+mycursor = mydb.cursor()
+print("Connected!", mydb)
+
+@app.route('/form')
+def hello_name():
+   return form
+
+@app.route('/upload', methods=['POST'])
+def upload():
+	global data
+
+	sql = "INSERT INTO brenanPictures (ID, Data, Type) VALUES ('1', %s, 'jpeg')"
+	val = (data)
+	mycursor.execute(sql, val)
+	mydb.commit()
+
+	return redirect(url_for('show'))
+
+@app.route('/show')
+def show():
+	ans = ""
+	global data
+	mycursor.execute("select Data from brenanPictures")
+	myresult = mycursor.fetchall()
+	for index, item in enumerate(myresult):
+		data.append(item)
+		ans += "<img src=/showpic/%d" % index +" />"
+	return ans
+
+@app.route('/showpic/<int:num>')
+def showpic(num):
+	global data
+	#print(data[num][0])
+	response = make_response(data[num][0])
+	response.headers.set('Content-Type', 'image/jpeg')
+	return response
+if __name__ == '__main__':
+   app.run('0.0.0.0', debug = True)
+
+
