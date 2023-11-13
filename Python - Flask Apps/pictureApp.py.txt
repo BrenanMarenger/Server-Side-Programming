@@ -2,7 +2,9 @@ import mysql.connector
 import imghdr
 from flask import *
 from pprint import pprint
-app = Flask(__name__)
+from PIL import Image
+import base64
+app = Flask(__name__, template_folder='template')
 
 form = """
 <!DOCTYPE html>
@@ -32,34 +34,27 @@ def hello_name():
 
 @app.route('/upload', methods=['POST'])
 def upload():
-	global data
-
 	sql = "INSERT INTO brenanPictures (ID, Data, Type) VALUES ('1', %s, 'jpeg')"
-	val = (data)
+	val = [(request.files['pic'].stream.read())]
 	mycursor.execute(sql, val)
 	mydb.commit()
-
 	return redirect(url_for('show'))
 
 @app.route('/show')
 def show():
-	ans = ""
 	global data
 	mycursor.execute("select Data from brenanPictures")
 	myresult = mycursor.fetchall()
 	for index, item in enumerate(myresult):
-		data.append(item)
-		ans += "<img src=/showpic/%d" % index +" />"
-	return ans
+		data_uri = base64.b64encode(item[0]).decode('utf-8')
+		data.append(data_uri)
+	return render_template('pictureApp.html', pictureData=data)
 
 @app.route('/showpic/<int:num>')
 def showpic(num):
 	global data
-	#print(data[num][0])
 	response = make_response(data[num][0])
 	response.headers.set('Content-Type', 'image/jpeg')
 	return response
 if __name__ == '__main__':
-   app.run('0.0.0.0', debug = True)
-
-
+   app.run('0.0.0.0',  port=8089, debug = True)
