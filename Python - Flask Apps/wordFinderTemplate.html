@@ -1,0 +1,26 @@
+<html>
+<body>
+
+<input type="text" name="input" id="input" />
+<textarea id="display" style="width:500px;height:180px"></textarea>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script>
+        $("#input").on("keyup", function (){ 
+            var value = document.getElementById('input').value
+	    $.ajax({
+  		type: "POST",
+  		url: "/search",
+  		data: JSON.stringify(value),
+  		contentType: "application/json",
+  		dataType: 'json', 
+		success: function(result) {
+			const array = result.split(',');
+        		console.log(array)
+        		var textarea = document.getElementById("display");
+        		textarea.value = array.join("\n");
+		}
+	     });
+	});
+</script>
+</body>
+</html>
